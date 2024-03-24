@@ -1,4 +1,3 @@
-workspace = { members = ["diesel_demo"] }
 [package]
 name = "chatybe"
 version = "0.1.0"
