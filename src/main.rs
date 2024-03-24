@@ -1,5 +1,7 @@
 use axum::{routing::get, Router}; // 0.6.1Router;
-mod routes;
+
+pub mod routes;
+
 #[tokio::main]
 async fn main() {
     let app = Router::new()
