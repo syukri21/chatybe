@@ -1,6 +1,8 @@
 use axum::{routing::get, Router}; // 0.6.1Router;
 
+pub mod model;
 pub mod routes;
+pub mod schema;
 
 #[tokio::main]
 async fn main() {
