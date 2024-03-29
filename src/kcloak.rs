@@ -1,18 +1,17 @@
-use core::panic;
 use dotenvy::dotenv;
 use futures::TryFutureExt;
 use keycloak::{types::RealmRepresentation, KeycloakAdmin, KeycloakAdminToken};
 use std::env;
 
 #[warn(dead_code)]
-pub struct KeyCloakImpl {
+pub struct KCloak {
     url: String,
     user: String,
     password: String,
     kcloak: KeycloakAdmin,
 }
 
-impl KeyCloakImpl {
+impl KCloak {
     pub async fn new() -> Result<Self, Box<dyn std::error::Error>> {
         dotenv().ok();
         let url = env::var("KEYCLOAK_URL").expect("KEYCLOAK_URL must be set");
@@ -28,7 +27,7 @@ impl KeyCloakImpl {
 
         let admin = KeycloakAdmin::new(&url, admin_token, client);
 
-        let realm = admin
+        admin
             .realm_get(realm)
             .or_else(|_| async {
                 admin
@@ -41,8 +40,6 @@ impl KeyCloakImpl {
                 admin.realm_get(realm).await
             })
             .await?;
-
-        let rname = realm.realm.expect("no realm name found");
 
         Ok(Self {
             url,

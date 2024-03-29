@@ -15,4 +15,3 @@ keycloak = "21.0.102"
 reqwest = "0.11.27"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-futures = "0.3.30"
