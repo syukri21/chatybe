@@ -12,3 +12,7 @@ tokio-postgres = "0.7.10"
 diesel = { version = "2.1.0", features = ["postgres"] }
 dotenvy = "0.15"
 keycloak = "21.0.102"
+reqwest = "0.11.27"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+futures = "0.3.30"
