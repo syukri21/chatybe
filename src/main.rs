@@ -1,4 +1,5 @@
 use axum::{routing::get, Router};
+
 pub mod connection;
 pub mod kcloak;
 pub mod model;
