@@ -1,14 +1,17 @@
 use dotenvy::dotenv;
 use futures::TryFutureExt;
 use keycloak::{types::RealmRepresentation, KeycloakAdmin, KeycloakAdminToken};
+use shaku::Interface;
 use std::env;
 
 #[warn(dead_code)]
 pub struct KCloak {
-    url: String,
-    user: String,
-    password: String,
     kcloak: KeycloakAdmin,
+}
+
+pub trait Auth: Interface {
+    fn get_keycloak_admin(&self) -> &KeycloakAdmin;
+    fn get_user(&self) -> String;
 }
 
 impl KCloak {
@@ -20,32 +23,38 @@ impl KCloak {
             env::var("KEYCLOAK_ADMIN_PASSWORD").expect("KEYCLOAK_ADMIN_PASSWORD must be set");
         let realm = "chaty";
         let client = reqwest::Client::new();
-        let admin_token = KeycloakAdminToken::acquire(&url, &user, &password, &client).await?;
+        let kcloak_client_token =
+            KeycloakAdminToken::acquire(&url, &user, &password, &client).await?;
+        tracing::info!("got kcloak_client token");
 
-        tracing::info!("got admin token");
-        tracing::debug!("{:#?}", admin_token);
-
-        let admin = KeycloakAdmin::new(&url, admin_token, client);
-
-        admin
+        let kcloak_client = KeycloakAdmin::new(&url, kcloak_client_token, client);
+        tracing::info!("instantiated keycloak");
+        // Create realm chaty if not exist
+        kcloak_client
             .realm_get(realm)
             .or_else(|_| async {
-                admin
+                kcloak_client
                     .post(RealmRepresentation {
                         realm: Some(realm.to_string()),
                         ..Default::default()
                     })
                     .await
                     .expect("could not create realm");
-                admin.realm_get(realm).await
+                kcloak_client.realm_get(realm).await
             })
             .await?;
 
         Ok(Self {
-            url,
-            user,
-            password,
-            kcloak: admin,
+            kcloak: kcloak_client,
         })
+    }
+}
+
+impl Auth for KCloak {
+    fn get_keycloak_admin(&self) -> &KeycloakAdmin {
+        &self.kcloak
+    }
+    fn get_user(&self) -> String {
+        String::from("kcloak_client")
     }
 }
