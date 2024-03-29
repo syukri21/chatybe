@@ -1,10 +1,12 @@
 use dotenvy::dotenv;
 use futures::TryFutureExt;
 use keycloak::{types::RealmRepresentation, KeycloakAdmin, KeycloakAdminToken};
-use shaku::Interface;
+use shaku::{Component, Interface};
 use std::env;
 
 #[warn(dead_code)]
+#[derive(Component)]
+#[shaku(interface = Auth)]
 pub struct KCloak {
     kcloak: KeycloakAdmin,
 }
@@ -15,7 +17,7 @@ pub trait Auth: Interface {
 }
 
 impl KCloak {
-    pub async fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn new() -> KCloak {
         dotenv().ok();
         let url = env::var("KEYCLOAK_URL").expect("KEYCLOAK_URL must be set");
         let user = env::var("KEYCLOAK_ADMIN").expect("KEYCLOAK_ADMIN must be set");
@@ -23,8 +25,9 @@ impl KCloak {
             env::var("KEYCLOAK_ADMIN_PASSWORD").expect("KEYCLOAK_ADMIN_PASSWORD must be set");
         let realm = "chaty";
         let client = reqwest::Client::new();
-        let kcloak_client_token =
-            KeycloakAdminToken::acquire(&url, &user, &password, &client).await?;
+        let kcloak_client_token = KeycloakAdminToken::acquire(&url, &user, &password, &client)
+            .await
+            .expect("Error acquire token");
         tracing::info!("got kcloak_client token");
 
         let kcloak_client = KeycloakAdmin::new(&url, kcloak_client_token, client);
@@ -42,11 +45,12 @@ impl KCloak {
                     .expect("could not create realm");
                 kcloak_client.realm_get(realm).await
             })
-            .await?;
+            .await
+            .expect("Error while creating realm");
 
-        Ok(Self {
+        Self {
             kcloak: kcloak_client,
-        })
+        }
     }
 }
 
