@@ -16,3 +16,4 @@ reqwest = "0.11.27"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 shaku = "0.6.1"
+futures = "0.3.30"
